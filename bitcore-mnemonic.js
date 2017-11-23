@@ -58,61 +58,62 @@ var $ = bitcore.util.preconditions;
  * @constructor
  */
 var Mnemonic = function(data, wordlist) {
-  if (!(this instanceof Mnemonic)) {
-    return new Mnemonic(data, wordlist);
-  }
+    if (!(this instanceof Mnemonic)) {
+        return new Mnemonic(data, wordlist);
+    }
 
-  if (_.isArray(data)) {
-    wordlist = data;
-    data = null;
-  }
-
-
-  // handle data overloading
-  var ent, phrase, seed;
-  if (Buffer.isBuffer(data)) {
-    seed = data;
-  } else if (_.isString(data)) {
-    phrase = unorm.nfkd(data);
-  } else if (_.isNumber(data)) {
-    ent = data;
-  } else if (data) {
-    throw new bitcore.errors.InvalidArgument('data', 'Must be a Buffer, a string or an integer');
-  }
-  ent = ent || 128;
+    if (_.isArray(data)) {
+        wordlist = data;
+        data = null;
+    }
 
 
-  // check and detect wordlist
-  wordlist = wordlist || Mnemonic._getDictionary(phrase);
-  if (phrase && !wordlist) {
-    throw new errors.UnknownWordlist(phrase);
-  }
-  wordlist = wordlist || Mnemonic.Words.ENGLISH;
+    // handle data overloading
+    var ent, phrase, seed;
+    if (Buffer.isBuffer(data)) {
+        seed = data;
+    } else if (_.isString(data)) {
+        phrase = unorm.nfkd(data);
+    } else if (_.isNumber(data)) {
+        ent = data;
+    } else if (data) {
+        throw new bitcore.errors.InvalidArgument('data', 'Must be a Buffer, a string or an integer');
+    }
+    ent = ent || 128;
 
-  if (seed) {
-    phrase = Mnemonic._entropy2mnemonic(seed, wordlist);
-  }
+
+    // check and detect wordlist
+    wordlist = wordlist || Mnemonic._getDictionary(phrase);
+
+    if (phrase && !wordlist) {
+        throw new errors.UnknownWordlist(phrase);
+    }
+    wordlist = wordlist || Mnemonic.Words.ENGLISH;
+
+    if (seed) {
+        phrase = Mnemonic._entropy2mnemonic(seed, wordlist);
+    }
 
 
-  // validate phrase and ent
-  if (phrase && !Mnemonic.isValid(phrase, wordlist)) {
-    throw new errors.InvalidMnemonic(phrase);
-  }
-  if (ent % 32 !== 0 || ent < 128) {
-    throw new bitcore.errors.InvalidArgument('ENT', 'Values must be ENT > 128 and ENT % 32 == 0');
-  }
+    // validate phrase and ent
+    if (phrase && !Mnemonic.isValid(phrase, wordlist)) {
+        throw new errors.InvalidMnemonic(phrase);
+    }
+    if (ent % 32 !== 0 || ent < 128) {
+        throw new bitcore.errors.InvalidArgument('ENT', 'Values must be ENT > 128 and ENT % 32 == 0');
+    }
 
-  phrase = phrase || Mnemonic._mnemonic(ent, wordlist);
+    phrase = phrase || Mnemonic._mnemonic(ent, wordlist);
 
-  Object.defineProperty(this, 'wordlist', {
-    configurable: false,
-    value: wordlist
-  });
+    Object.defineProperty(this, 'wordlist', {
+        configurable: false,
+        value: wordlist
+    });
 
-  Object.defineProperty(this, 'phrase', {
-    configurable: false,
-    value: phrase
-  });
+    Object.defineProperty(this, 'phrase', {
+        configurable: false,
+        value: phrase
+    });
 };
 
 Mnemonic.Words = require('./words');
@@ -130,30 +131,30 @@ Mnemonic.Words = require('./words');
  * @returns {boolean}
  */
 Mnemonic.isValid = function(mnemonic, wordlist) {
-  mnemonic = unorm.nfkd(mnemonic);
-  wordlist = wordlist || Mnemonic._getDictionary(mnemonic);
+    mnemonic = unorm.nfkd(mnemonic);
+    wordlist = wordlist || Mnemonic._getDictionary(mnemonic);
 
-  if (!wordlist) {
-    return false;
-  }
+    if (!wordlist) {
+        return false;
+    }
 
-  var words = mnemonic.split(' ');
-  var bin = '';
-  for (var i = 0; i < words.length; i++) {
-    var ind = wordlist.indexOf(words[i]);
-    if (ind < 0) return false;
-    bin = bin + ('00000000000' + ind.toString(2)).slice(-11);
-  }
+    var words = mnemonic.split(' ');
+    var bin = '';
+    for (var i = 0; i < words.length; i++) {
+        var ind = wordlist.indexOf(words[i]);
+        if (ind < 0) return false;
+        bin = bin + ('00000000000' + ind.toString(2)).slice(-11);
+    }
 
-  var cs = bin.length / 33;
-  var hash_bits = bin.slice(-cs);
-  var nonhash_bits = bin.slice(0, bin.length - cs);
-  var buf = new Buffer(nonhash_bits.length / 8);
-  for (i = 0; i < nonhash_bits.length / 8; i++) {
-    buf.writeUInt8(parseInt(bin.slice(i * 8, (i + 1) * 8), 2), i);
-  }
-  var expected_hash_bits = Mnemonic._entropyChecksum(buf);
-  return expected_hash_bits === hash_bits;
+    var cs = bin.length / 33;
+    var hash_bits = bin.slice(-cs);
+    var nonhash_bits = bin.slice(0, bin.length - cs);
+    var buf = new Buffer(nonhash_bits.length / 8);
+    for (i = 0; i < nonhash_bits.length / 8; i++) {
+        buf.writeUInt8(parseInt(bin.slice(i * 8, (i + 1) * 8), 2), i);
+    }
+    var expected_hash_bits = Mnemonic._entropyChecksum(buf);
+    return expected_hash_bits === hash_bits;
 };
 
 /**
@@ -164,12 +165,12 @@ Mnemonic.isValid = function(mnemonic, wordlist) {
  * @returns {boolean}
  */
 Mnemonic._belongsToWordlist = function(mnemonic, wordlist) {
-  var words = unorm.nfkd(mnemonic).split(' ');
-  for (var i = 0; i < words.length; i++) {
-    var ind = wordlist.indexOf(words[i]);
-    if (ind < 0) return false;
-  }
-  return true;
+    var words = unorm.nfkd(mnemonic).split(' ');
+    for (var i = 0; i < words.length; i++) {
+        var ind = wordlist.indexOf(words[i]);
+        if (ind < 0) return false;
+    }
+    return true;
 };
 
 /**
@@ -179,16 +180,16 @@ Mnemonic._belongsToWordlist = function(mnemonic, wordlist) {
  * @returns {Array} the wordlist or null
  */
 Mnemonic._getDictionary = function(mnemonic) {
-  if (!mnemonic) return null;
+    if (!mnemonic) return null;
 
-  var dicts = Object.keys(Mnemonic.Words);
-  for (var i = 0; i < dicts.length; i++) {
-    var key = dicts[i];
-    if (Mnemonic._belongsToWordlist(mnemonic, Mnemonic.Words[key])) {
-      return Mnemonic.Words[key];
+    var dicts = Object.keys(Mnemonic.Words);
+    for (var i = 0; i < dicts.length; i++) {
+        var key = dicts[i];
+        if (Mnemonic._belongsToWordlist(mnemonic, Mnemonic.Words[key])) {
+            return Mnemonic.Words[key];
+        }
     }
-  }
-  return null;
+    return null;
 };
 
 /**
@@ -198,8 +199,8 @@ Mnemonic._getDictionary = function(mnemonic) {
  * @returns {Buffer}
  */
 Mnemonic.prototype.toSeed = function(passphrase) {
-  passphrase = passphrase || '';
-  return pbkdf2(unorm.nfkd(this.phrase), unorm.nfkd('mnemonic' + passphrase), 2048, 64);
+    passphrase = passphrase || '';
+    return pbkdf2(unorm.nfkd(this.phrase), unorm.nfkd('mnemonic' + passphrase), 2048, 64);
 };
 
 /**
@@ -210,9 +211,9 @@ Mnemonic.prototype.toSeed = function(passphrase) {
  * @returns {Mnemonic}
  */
 Mnemonic.fromSeed = function(seed, wordlist) {
-  $.checkArgument(Buffer.isBuffer(seed), 'seed must be a Buffer.');
-  $.checkArgument(_.isArray(wordlist) || _.isString(wordlist), 'wordlist must be a string or an array.');
-  return new Mnemonic(seed, wordlist);
+    $.checkArgument(Buffer.isBuffer(seed), 'seed must be a Buffer.');
+    $.checkArgument(_.isArray(wordlist) || _.isString(wordlist), 'wordlist must be a string or an array.');
+    return new Mnemonic(seed, wordlist);
 };
 
 /**
@@ -225,8 +226,8 @@ Mnemonic.fromSeed = function(seed, wordlist) {
  * @returns {HDPrivateKey}
  */
 Mnemonic.prototype.toHDPrivateKey = function(passphrase, network) {
-  var seed = this.toSeed(passphrase);
-  return bitcore.HDPrivateKey.fromSeed(seed, network);
+    var seed = this.toSeed(passphrase);
+    return bitcore.HDPrivateKey.fromSeed(seed, network);
 };
 
 /**
@@ -235,7 +236,7 @@ Mnemonic.prototype.toHDPrivateKey = function(passphrase, network) {
  * @returns {String} Mnemonic
  */
 Mnemonic.prototype.toString = function() {
-  return this.phrase;
+    return this.phrase;
 };
 
 /**
@@ -244,7 +245,7 @@ Mnemonic.prototype.toString = function() {
  * @returns {String} Mnemonic
  */
 Mnemonic.prototype.inspect = function() {
-  return '<Mnemonic: ' + this.toString() + ' >';
+    return '<Mnemonic: ' + this.toString() + ' >';
 };
 
 /**
@@ -255,8 +256,8 @@ Mnemonic.prototype.inspect = function() {
  * @returns {String} Mnemonic string
  */
 Mnemonic._mnemonic = function(ENT, wordlist) {
-  var buf = Random.getRandomBuffer(ENT / 8);
-  return Mnemonic._entropy2mnemonic(buf, wordlist);
+    var buf = Random.getRandomBuffer(ENT / 8);
+    return Mnemonic._entropy2mnemonic(buf, wordlist);
 };
 
 /**
@@ -267,27 +268,27 @@ Mnemonic._mnemonic = function(ENT, wordlist) {
  * @returns {String} Mnemonic string
  */
 Mnemonic._entropy2mnemonic = function(entropy, wordlist) {
-  var bin = '';
-  for (var i = 0; i < entropy.length; i++) {
-    bin = bin + ('00000000' + entropy[i].toString(2)).slice(-8);
-  }
+    var bin = '';
+    for (var i = 0; i < entropy.length; i++) {
+        bin = bin + ('00000000' + entropy[i].toString(2)).slice(-8);
+    }
 
-  bin = bin + Mnemonic._entropyChecksum(entropy);
-  if (bin.length % 11 !== 0) {
-    throw new errors.InvalidEntropy(bin);
-  }
-  var mnemonic = [];
-  for (i = 0; i < bin.length / 11; i++) {
-    var wi = parseInt(bin.slice(i * 11, (i + 1) * 11), 2);
-    mnemonic.push(wordlist[wi]);
-  }
-  var ret;
-  if (wordlist === Mnemonic.Words.JAPANESE) {
-    ret = mnemonic.join('\u3000');
-  } else {
-    ret = mnemonic.join(' ');
-  }
-  return ret;
+    bin = bin + Mnemonic._entropyChecksum(entropy);
+    if (bin.length % 11 !== 0) {
+        throw new errors.InvalidEntropy(bin);
+    }
+    var mnemonic = [];
+    for (i = 0; i < bin.length / 11; i++) {
+        var wi = parseInt(bin.slice(i * 11, (i + 1) * 11), 2);
+        mnemonic.push(wordlist[wi]);
+    }
+    var ret;
+    if (wordlist === Mnemonic.Words.JAPANESE) {
+        ret = mnemonic.join('\u3000');
+    } else {
+        ret = mnemonic.join(' ');
+    }
+    return ret;
 };
 
 /**
@@ -298,26 +299,25 @@ Mnemonic._entropy2mnemonic = function(entropy, wordlist) {
  * @private
  */
 Mnemonic._entropyChecksum = function(entropy) {
-  var hash = Hash.sha256(entropy);
-  var bits = entropy.length * 8;
-  var cs = bits / 32;
+    var hash = Hash.sha256(entropy);
+    var bits = entropy.length * 8;
+    var cs = bits / 32;
 
-  var hashbits = new BN(hash.toString('hex'), 16).toString(2);
+    var hashbits = new BN(hash.toString('hex'), 16).toString(2);
 
-  // zero pad the hash bits
-  while (hashbits.length % 256 !== 0) {
-    hashbits = '0' + hashbits;
-  }
+    // zero pad the hash bits
+    while (hashbits.length % 256 !== 0) {
+        hashbits = '0' + hashbits;
+    }
 
-  var checksum = hashbits.slice(0, cs);
+    var checksum = hashbits.slice(0, cs);
 
-  return checksum;
+    return checksum;
 };
 
 Mnemonic.bitcore = bitcore;
 
 module.exports = Mnemonic;
-
 }).call(this,require("buffer").Buffer)
 },{"./errors":1,"./pbkdf2":3,"./words":7,"bitcore-lib":"bitcore-lib","buffer":59,"unorm":168}],3:[function(require,module,exports){
 (function (Buffer){
