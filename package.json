@@ -8,12 +8,18 @@
         "lint": "gulp lint",
         "test": "gulp test",
         "coverage": "gulp coverage",
-        "build": "gulp"
+        "build": "gulp browser"
     },
-    "contributors": [{
-        "name": "Yemel Jardi",
-        "email": "angel.jardi@gmail.com"
-    }],
+    "contributors": [
+        {
+            "name": "jhkim",
+            "email": "jhkim@etra.kr"
+        },
+        {
+            "name": "Yemel Jardi",
+            "email": "angel.jardi@gmail.com"
+        }
+    ],
     "repository": {
         "type": "git",
         "url": "https://github.com/bitchk-wallet/bitcore-mnemonic.git"
